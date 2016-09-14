@@ -14,8 +14,8 @@ echo -e "Please enter the Destination mount point" ; read d_mnt
 #echo -e 'Please enter the Tag name ex: iscsi'; read in_tag
 
 # Variable Declaration
-script_loc='/arista_scripts/final_scripts_14_09_'
-#script_loc='/arista_scripts'                                   # Scripts stored location
+#script_loc='/arista_scripts/final_scripts_14_09_'
+script_loc='/arista_scripts'                                   # Scripts stored location
 content_file="$script_loc/out.txt";touch $content_file          # Content files
 influx_file="$script_loc/influx.txt"                            # Influx DB data upload file
 iscsi_target='iqn.2006-01.com.openfiler:tsn.3af9bd6b7b5b'       # Target IQN
