@@ -1,0 +1,2 @@
+drive_info,iscsi_stat=Mounted,disk_type=mysql,mount_point=/content value=351204
+drive_info,iscsi_stat=Mounted,disk_type=iscsi,mount_point=/iscsi_mount value=419484
