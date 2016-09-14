@@ -11,7 +11,7 @@
 # Taking the inputs from the users
 echo -e "Please enter the Source mount point"; read s_mnt
 echo -e "Please enter the Destination mount point" ; read d_mnt
-#echo -e 'Please enter the Tag name ex: iscsi'; read in_tag
+echo -e 'Please enter the Tag name ex: iscsi'; read in_tag
 
 # Variable Declaration
 #script_loc='/arista_scripts/final_scripts_14_09_'
