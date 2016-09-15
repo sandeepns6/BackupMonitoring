@@ -1,5 +1,0 @@
-*.txt
-.netrc
-.gitignore
-*.conf
-tmp_size_check.sh
