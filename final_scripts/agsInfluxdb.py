@@ -97,4 +97,3 @@ client.write_points( pointsList )
 # UPDATING THE SQLITE RECORDS WITH UPLOADED COLUMN AS 1
 conn.execute("update drive_info set uploaded=1 where uploaded=0;")
 conn.commit()
-
