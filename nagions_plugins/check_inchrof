@@ -1,0 +1,72 @@
+# Nagios Plugin for checking the influxDB and Chronograf services
+#
+# Author:  Praveen Kumar Gunasekar
+# Email:   praveen.gunasekar@happiestminds.com
+# Date:    September 2016
+# Purpose: Nagios Plugin for checking the influxDB and Chronograf services
+
+PROGNAME=`basename $0`
+PROGPATH=`echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,'`
+REVISION=`echo '$Revision: 1.00 $' | sed -e 's/[^0-9.]//g'`
+. $PROGPATH/utils.sh
+
+INFLUX_CHECK=`/etc/init.d/influxdb status|tr '[A-Z]' '[a-z]'| sed "/^\s*$/d"`
+CHROF_CHECK=`/etc/init.d/chronograf status|tr '[A-Z]' '[a-z]'`
+
+RECI='test@arista.com,test1@arista.com'
+SUB=''
+# Checking the influxdb is up and running
+case "$INFLUX_CHECK" in
+        *"not running"*)
+              ISERVICE="\nWARNING: $INFLUX_CHECK"
+              INSTATE=$STATE_WARNING
+	      SUB='ICINGA2: INFLUXDB service'
+	      echo 'INFLUXDB service is not running.. Please check..' | mail -s $SUB $RECI -aFrom:Alerts@arista.com
+        ;;
+        *"running"*)
+              ISERVICE="\nOK: $INFLUX_CHECK"
+              INSTATE=$STATE_OK
+        ;;
+        *)
+              ISERVICE="\nCRITICAL: InfluxDB is not running"
+              INSTATE=$STATE_CRITICAL
+        ;;
+esac
+
+# Checking the Chronograf is up and running
+case "$CHROF_CHECK" in
+        *"not running"*)
+              CSERVICE="WARNING: $CHROF_CHECK"
+              CSTATE=$STATE_WARNING
+              SUB='ICINGA2: CHRONOGRAF service'
+              echo 'CHRONOGRAF service is not running.. Please check..' | mail -s $SUB $RECI -aFrom:Alerts@arista.com
+
+        ;;
+        *"running"*)
+              CSERVICE="OK: $CHROF_CHECK"
+              CSTATE=$STATE_OK
+        ;;
+        *)
+              CSERVICE="CRITICAL: Chronograf is not installed"
+              CSTATE=$STATE_CRITICAL
+        ;;
+esac
+
+echo -e "$ISERVICE\n$CSERVICE\n" | sed '/^\s*$/d'
+
+if [ $INSTATE -lt 0 -o $INSTATE -gt 3 -o $CSTATE -lt 0 -o $CSTATE -gt 3 ]; then
+        STATE=$STATE_UNKNOWN
+elif [ $INSTATE -eq 0 -a $CSTATE -eq 0 ]; then
+        STATE=$STATE_OK
+elif [ $INSTATE -eq 1 -o $CSTATE -eq 1 ]; then
+        STATE=$STATE_WARNING
+elif [ $INSTATE -eq 2 -o $CSTATE -eq 2 ]; then
+        STATE=$STATE_CRITICAL
+elif [ $INSTATE -eq 3 -o $CSTATE -eq 3 ]; then
+        STATE=$STATE_UNKNOWN
+else
+        STATE=$STATE_UNKNOWN
+fi
+exit $STATE
+
+
