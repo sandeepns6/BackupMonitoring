@@ -1,15 +1,16 @@
 #!/usr/bin/python
 import os,sys, argparse, datetime, sqlite3                   # Importing the required modules
 from influxdb import InfluxDBClient     # Importing the influxdb client module
+#DB_NAME = 'ServerStats'                   # Database name
+#DB_SERVER = 'serverstats'                 # Server Name
+#SQLITE_DB = '/asg_backup/backup.db'       # SQLITE3 DB
+#DB_MEASUREMENT = 'asg_backup'		# MEASUREMENT
 DB_NAME = 'asgbackup'                   # Database name
 DB_SERVER = '10.0.0.22'                 # Server Name
-DB_PORT = '8086' 			# INFLUX DB PORT
-DB_USER = 'icingauser' 			# INFLUX DB USERNAME
-DB_PASSWD = 'icinga@123'		# INFLUX DB PASSWORD
-DB_MEASUREMENT = 'drive_info'		# MEASUREMENT
-client = InfluxDBClient( DB_SERVER, DB_PORT, DB_USER, DB_PASSWD, DB_NAME ) # Influx DB connection
-MYDICT =  {}
 SQLITE_DB = 'arista.db'                 # SQLITE3 DB
+DB_MEASUREMENT = 'drive_info'		# MEASUREMENT
+client = InfluxDBClient( DB_SERVER, 8086, '', '', DB_NAME ) # Influx DB connection
+MYDICT =  {}
 now = datetime.datetime.now()
 pointsList = []
 
@@ -18,7 +19,7 @@ def createPoint( MYDICT ):
    jsonCreate = {
                 "measurement": DB_MEASUREMENT,
                 "tags": {
-                    "target": MYDICT['target']
+                    "server": MYDICT['server']
                 },
                 "time": MYDICT['startTime'],
                 "fields": {
@@ -31,8 +32,8 @@ def createPoint( MYDICT ):
 
 # FUNCTION TO CALCULATE THE DURATION
 def calTimeDifference( starttime, endtime ):
-    start_dt = datetime.datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S') 
-    end_dt = datetime.datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+    start_dt = datetime.datetime.strptime(starttime, '%Y-%m-%dT%H:%M:%SZ') 
+    end_dt = datetime.datetime.strptime(endtime, '%Y-%m-%dT%H:%M:%SZ')
     diff = (end_dt - start_dt)
     return (diff.days * 24 * 60 * 60) + (diff.seconds / 60)
 
@@ -42,7 +43,7 @@ def addBackupPoint(server, files, size, startTime, endTime):
   MYDICT['server'] = server
   MYDICT['files'] = files
   MYDICT['nmbytes'] = size
-  MYDICT['startTime'] = (datetime.datetime.strptime(startTime, '%Y-%m-%d %H:%M:%S')).strftime("%Y-%m-%dT%H:%M:%SZ")
+  MYDICT['startTime'] = (datetime.datetime.strptime(startTime, '%Y-%m-%dT%H:%M:%SZ')).strftime("%Y-%m-%dT%H:00:00Z")
   pointsList.append(createPoint(MYDICT))
   print pointsList
 #  client.write_points( pointsList )
@@ -52,7 +53,7 @@ def getArgs():
     parser = argparse.ArgumentParser(
         description='Script for taking the required data and pushing the influxdb')
     parser.add_argument(
-        '-s', '--server', type=str, help='End target')
+        '-s', '--server', type=str, help='End server')
     parser.add_argument(
         '-f', '--files', type=int, help='Number of files')
     parser.add_argument(
@@ -76,7 +77,7 @@ def sqlWriteInfluxDb():
      MYDICT['files'] = row[2]
      MYDICT['nmbytes'] = row[3]
      MYDICT['duration'] = calTimeDifference( row[4], row[5] )
-     MYDICT['startTime'] = (datetime.datetime.strptime(row[4], '%Y-%m-%d %H:%M:%S')).strftime("%Y-%m-%dT%H:%M:%SZ")
+     MYDICT['startTime'] = (datetime.datetime.strptime(row[4], '%Y-%m-%dT%H:%M:%SZ')).strftime("%Y-%m-%dT%H:00:00Z")
      jsonCreate = createPoint(MYDICT) 
      pointsList.append(jsonCreate)
      # UPDATING THE SQLITE RECORDS WITH UPLOADED COLUMN AS 1
@@ -90,13 +91,13 @@ if len(sys.argv) > 1:
     MYDICT['files'] = float(cmdLineArgs.files)
     MYDICT['nmbytes'] = float(cmdLineArgs.nmbytes)
     MYDICT['duration'] = float(cmdLineArgs.duration)
-    MYDICT['startTime'] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    MYDICT['startTime'] = now.strftime("%Y-%m-%dT%H:00:00Z")
     pointsList.append( createPoint( MYDICT ) )
 else:
     sqlWriteInfluxDb()
 
-print pointsList
-# CALLING INFLUXDB API TO PUSH THE DATAPOINTS
-#client.write_points( pointsList )
+#print pointsList
+ CALLING INFLUXDB API TO PUSH THE DATAPOINTS
+client.write_points( pointsList )
 
 

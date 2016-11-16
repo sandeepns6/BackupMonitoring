@@ -1,0 +1,1 @@
+CREATE TABLE drive_info(id integer primary key autoincrement, target varchar(20) NOT NULL, files int NOT NULL, bytes int NOT NULL, starttime text NOT NULL, endtime text NOT NULL,uploaded boolean NOT NULL);
